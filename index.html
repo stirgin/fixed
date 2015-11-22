@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+		<style>
+	canvas{
+    border: 2px solid #000;
+    cursor:pointer;
+  	}
+
+	</style>
+	 
+</head>
+<body>
+	
+	<input type="file" class="files" name="files[]" multiple />
+	<canvas id="drawingCanvas" width="200" height="200" ></canvas>
+	<div>
+    <table class="tab" border="1">
+    <caption>Таблица координат</caption>
+	<tbody>
+		
+	</tbody>
+    </table>
+    </div>
+    <script src="jquery.min.js"></script>  
+	<script>
+	
+//http://khramkov.blogspot.com.by/2012/04/javascript.html
+//Number.prototype.toRad = function () { return this * Math.PI / 180; }
+//(90).toRad();
+
+	var count,img,width,height,thisX,thisY, titles, all, images, objPixels,countObj, pixel, arrayPixel, canvas, ctx, buffer, img;
+
+ 	count=0;thisY=0;thisX=0;countObj=0;objPixels = [];
+ 	titles = [];all=[];images = [];
+
+
+	canvas = document.getElementById('drawingCanvas');
+	ctx = canvas.getContext('2d');
+	width = canvas.width;
+	height = canvas.height;
+	
+	img = new Image();
+	img.src = '4.bmp';
+
+a=0;x=1;r=1;
+var ss = ((- Math.cos(a)/ Math.sin(a))*x+(r/Math.sin(a)));
+console.log(- Math.sin(0));
+
+
+
+
+//r = x * Math.cos(a) + y * Math.sin(a);
+ //r = 1 * Math.cos(0) + 180 * Math.sin(0);
+ //console.log(r);
+
+
+function addNewRow(array){
+        var tabl,str,length,count;
+        count=0;
+        length = array.length/2;
+        tabl = $('.tab tbody');
+        str ='<tr><th>'+'Number'+'</th>';
+        strX = '<tr><th>'+'X'+'</th>';
+        strY = '<tr><th>'+'Y'+'</th>';
+        for(var i=1;i<=length;i++){
+        	str+='<th>'+i+'</th>';
+        	strX+='<th>'+array[count]+'</th>';
+        	strY+='<th>'+array[count+1]+'</th>';
+        	count+=2;
+        }
+        str+='</tr>';
+        strX+='</tr>';
+        strY+='</tr>';
+        tabl.append(str);
+        tabl.append(strX);
+        tabl.append(strY);
+}	
+
+var pixelCount = 1;
+var coordArray = [];
+
+
+var setCoord = (function() {
+	var count = 0;
+
+	return function(x,y){
+	        coordArray[count] = x;
+	        coordArray[count + 1] = y;
+	        count += 2;
+	        };
+})();
+
+
+function search() {
+	 	getXandY(arrayPixel);
+	 	if(thisY<height && thisX<width){
+	 	setCoord(thisX,thisY);
+	 	pixelCount++;
+	 	}
+
+
+}
+
+	img.onload = function () {
+	
+	 ctx.drawImage(img, 0, 0);
+     arrayPixel = getArrayPixel();
+
+     console.log("start");
+
+	while(thisY<height && thisX<width) {
+		search();
+	}
+
+      console.log("end");
+      addNewRow(coordArray);
+
+	};
+
+function getArrayPixel(){
+	var data, light, arr, pix;
+	picLength=width*height;
+	arr=[];
+	for( i = 0;i<height;i++)
+	    arr[i]=[];
+
+	for(var i = 0;i<height;i++){
+	    for(var j = 0;j<width;j++){
+	     pix = ctx.getImageData(j,i, 1, 1);
+	     data = pix.data;
+
+	     light = (data[0] + data[1] + data[2] ) /3;
+	     arr[i][j]=Math.floor(light);
+
+	    }
+	   }
+
+	  return arr;
+}
+function setArrayPixel(array){
+	var data, light, arr, pix;
+	picLength=width*height;
+	arr=[];
+
+	data = ctx.getImageData(0,0,width,height);
+	pix = data.data;
+
+		var r,g,b,o;
+		r=0,g=1,b=2,o=3;
+
+	for(var i = 0;i<height;i++){
+		for(var j = 0;j<width;j++,r+= 4,g+= 4,b+= 4,o+= 4){
+
+	if(objPixels[countObj].rgb[0]==array[i][j]){
+			arr[r]=objPixels[countObj].rgb[0];
+	     	arr[g]=objPixels[countObj].rgb[1];
+	     	arr[b]=objPixels[countObj].rgb[2];
+	     	arr[o]=255;
+	}
+	else{
+			arr[r]=array[i][j];
+	     	arr[g]=array[i][j];
+	     	arr[b]=array[i][j];
+	     	arr[o]=255;
+		}	
+	     	
+		}
+	}
+	     	
+	for(var i = 0,j = 1,n = 2;i<picLength*4;i += 4,j += 4,n += 4){
+	     	pix[i]=arr[i];
+	     	pix[j]=arr[j];
+	     	pix[n]=arr[n];
+	}
+	  
+	  data.data=pix;
+	  putColorData(data);
+}
+
+
+function getXandY(arr){
+
+	for(thisY; thisY < height; thisY++){
+		for(thisX; thisX < width;){
+			thisX++;
+			if(arr[thisY][thisX] == 0){
+			   return ;
+			}
+		}
+		thisX = -1;
+	}
+	   thisY = height;
+	   thisX = width;
+};
+
+
+function putColorData(img){
+
+    ctx.putImageData(img, 0, 0);
+}
+
+
+function handleFileSelect(evt){
+    var files = evt.target.files; 
+    	count=0;thisY=0;thisX=0;countObj=0;objPixels = [];
+
+    for (var i = 0, f; f = files[i]; i++) {
+
+      if (!f.type.match('image.*')) {
+        continue;
+      }
+
+      var reader = new FileReader();
+
+      
+      reader.onload = (function(theFile){
+        return function(e) {
+ 
+          titles[count]=escape(theFile.name);
+                	
+          img = new Image();
+          img.src = e.target.result;
+          img.setAttribute('crossOrigin', 'anonymous');
+          images[count]=img;
+           getMass(count);
+          };
+      })(f);
+      
+      
+      reader.readAsDataURL(f);
+    }
+   
+  }
+   document.getElementsByClassName('files')[0].addEventListener('change', handleFileSelect, false);
+
+
+ function getMass(o){
+
+	var arr = [];
+	for( i = 0;i<20;i++)
+	    arr[i]=[];
+	 var pix, data, sum, light,s;
+	  ctx.drawImage(images[o], 0, 0);
+		while(thisY<height && thisX<width){
+			search();		
+		}
+	};
+
+	
+
+	</script>
+
+	
+</body>
+</html>
